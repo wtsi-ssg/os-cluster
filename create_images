@@ -1,0 +1,95 @@
+#!/bin/bash
+export DATE="`date --rfc-3339=seconds`"
+export REL="precise"
+case "$REL" in
+  precise)
+    export SIMPLE_IMAGE="82b55c8c-cce1-4301-92c4-b005180531de"
+    ;;
+esac
+LOG=/tmp/pack_log.$$
+LOG2=/tmp/pack_log2.$$
+BASE=/warehouse/isg_warehouse/
+PACKER_RAW=${BASE}/packer$$.raw
+PACKER_QCOW=${BASE}/packer$$.qcow2
+export BASE_IMAGE=""
+export COMPUTE_IMAGEID=""
+rm -f ${LOG} ${PACKER_RAW} ${PACKER_QCOW}
+if [ -z "$BASE_IMAGE" ] ; then
+ packer build -only openstack packer/base.json | tee $LOG
+ IMAGEID=`tail -1  $LOG | sed -e 's/.*An image was created: //'`
+ if [ -z "${IMAGEID}" ]; then
+  echo "IMAGE not generated"
+  exit 1 ;
+ fi
+ echo Downloading raw image
+ if ! glance image-download --progress --file ${PACKER_RAW} ${IMAGEID} ; then
+  echo Error downloading image
+  exit 2
+ fi
+ echo Converting to QCOW2
+ if ! qemu-img convert -f raw -O qcow2 ${PACKER_RAW} ${PACKER_QCOW} ; then
+  echo Error converting image
+  exit 3
+ fi
+ if ! glance image-create --file ${PACKER_QCOW} --disk-format qcow2 --container-format bare  --progress  --name "cluster in a box base ($DATE $REL)" |tee $LOG2 ; then
+  echo Error uploading image
+  exit 4
+ fi
+ rm -f ${PACKER_QCOW} ${PACKER_RAW}
+ glance image-delete ${IMAGEID}
+ export BASE_IMAGE=`grep " id " $LOG2 | awk '{print $4}'`
+ rm $LOG
+fi
+
+if [ -z "$HEAD_IMAGEID" ] ; then
+ packer build -only openstack packer/head_node.json | tee $LOG
+ export HEAD_IMAGEID=`tail -1  $LOG | sed -e 's/.*An image was created: //'`
+ if [ -z "${HEAD_IMAGEID}" ]; then
+  echo "IMAGE not generated (head)"
+  exit 5 ; 
+ fi
+ echo Downloading raw image
+ if ! glance image-download --progress --file ${PACKER_RAW} ${HEAD_IMAGEID} ; then
+  echo "Error downloading image (head)"
+  exit 6
+ fi
+ echo Converting to QCOW2
+ if ! qemu-img convert -f raw -O qcow2 ${PACKER_RAW} ${PACKER_QCOW} ; then
+  echo "Error converting image (head)"
+  exit 7
+ fi
+ if ! glance image-create --file ${PACKER_QCOW} --disk-format qcow2 --container-format bare  --progress  --name "cluster in a box head ($DATE $REL)" |tee $LOG2 ; then
+  echo "Error uploading image (head)"
+  exit 8
+ fi
+ echo cleaning local file system
+ rm -f ${PACKER_RAW} ${PACKER_QCOW}
+ echo cleaning glance
+ glance image-delete ${HEAD_IMAGEID}
+ rm $LOG
+fi
+
+packer build -only openstack packer/compute_node.json | tee $LOG
+export COMPUTE_IMAGEID=`tail -1  $LOG | sed -e 's/.*An image was created: //'`
+if [ -z "${COMPUTE_IMAGEID}" ]; then
+  echo "IMAGE not generated (compute)"
+      exit 9 ; 
+fi
+echo Downloading raw image
+if ! glance image-download --progress --file ${PACKER_RAW} ${COMPUTE_IMAGEID} ; then
+    echo "Error downloading image (compute)"
+    exit 10 
+fi
+echo Converting to QCOW2
+if ! qemu-img convert -f raw -O qcow2 ${PACKER_RAW} ${PACKER_QCOW} ; then
+    echo "Error converting image (compute)"
+    exit 11
+fi
+if ! glance image-create --file ${PACKER_QCOW} --disk-format qcow2 --container-format bare  --progress  --name "cluster in a box compute ($DATE $REL)" |tee $LOG2 ; then
+    echo "Error uploading image (compute)"
+    exit 12
+fi
+echo cleaning local file system
+rm -f ${PACKER_RAW} ${PACKER_QCOW}
+echo cleaning glance
+glance image-delete ${COMPUTE_IMAGEID}

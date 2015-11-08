@@ -1,0 +1,23 @@
+{
+    "variables": {
+      "image_id": "{{env `BASE_IMAGE`}}"
+    },
+    "builders": [
+        {
+            "flavor": "m1.small",
+            "image_name": "cluster in a box head node",
+            "source_image": "{{user `image_id`}}",
+            "ssh_username": "ubuntu",
+            "use_floating_ip": "true",
+            "floating_ip_pool": "nova",
+            "type": "openstack",
+            "security_groups": "ssh"
+        }
+    ],
+    "provisioners": [
+        {
+             "type": "ansible-local",
+             "playbook_file": "ansible/compute.yml"
+        }
+    ]
+}

@@ -1,0 +1,30 @@
+{
+    "variables": {
+            "image_id": "{{env `SIMPLE_IMAGE`}}"
+                  },
+    "builders": [
+        {
+            "flavor": "m1.small",
+            "image_name": "cluster in a box",
+            "source_image": "{{user `image_id`}}",
+            "ssh_username": "ubuntu",
+            "use_floating_ip": "true",
+            "floating_ip_pool": "nova",
+            "type": "openstack",
+            "security_groups": "ssh"
+        }
+    ],
+    "provisioners": [
+              {
+            "scripts": [
+              "scripts/install_ansible.sh"
+            ],
+            "type": "shell",
+            "execute_command": "sudo bash '{{.Path}}'"
+        },
+        {
+             "type": "ansible-local",
+             "playbook_file": "ansible/base.yml"
+        }
+    ]
+}

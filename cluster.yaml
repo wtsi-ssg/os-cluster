@@ -1,0 +1,207 @@
+heat_template_version: 2015-04-30
+# http://www.yamllint.com/
+# http://docs.openstack.org/developer/heat/template_guide/hot_guide.html
+# https://gitlab.cern.ch/admluis/clouddocs/blob/56d3af4fde261bf42125038d4c6c835e576011e0/orchestration/advanced_concepts.md
+# https://github.com/miguelgrinberg/heat-tutorial/blob/master/lib/keypair.yaml
+# https://github.com/openstack/heat-templates/blob/master/hot/autoscaling.yaml
+# http://docs.openstack.org/developer/heat/template_guide/hot_spec.html
+# https://gist.github.com/arnaudmorinol/4d2c9ab52a97afd31f5b
+# https://developer.rackspace.com/blog/openstack-orchestration-in-depth-part-4-scaling/
+
+description: Deploy a cluster
+
+parameters:
+  head-image:
+    type: string
+    label: Image name or ID
+    description: Image to be used for compute instance
+    default: adfd8467-9ceb-4ea6-983f-ca4866495a58
+  compute-image:
+    type: string
+    label: Image name or ID
+    description: Image to be used for compute instance
+    default: ebeb4955-dbe4-4e11-8b37-e978b39222d8
+  head-flavor:
+    type: string
+    label: Flavor
+    description: Type of instance (flavor) to be used for the head node
+    default: m1.large
+  compute-flavor:
+    type: string
+    label: Flavor
+    description: Type of instance (flavor) to be used for the compute node
+    default: m1.small
+  key:
+    type: string
+    label: Key name
+    description: Name of key-pair to be used for compute instance
+    default: jb23_set2
+  timeout:
+    type: number
+    description: Timeout for WaitCondition, depends on your image and environment
+    default: 1200
+  compute-node-count:
+    type: number
+    description: How many compute nodes to spin up
+    default: 2
+
+resources:
+  head_wait:
+    type: OS::Heat::WaitCondition
+    properties:
+      handle: {get_resource: wait_handle}
+      timeout: {get_param: timeout}
+
+  wait_handle:
+    type: OS::Heat::WaitConditionHandle
+
+  floating_ip:
+     type: OS::Nova::FloatingIP
+     properties:
+       pool: nova
+
+  keypair:
+    type: OS::Nova::KeyPair
+    properties:
+      name: local_root
+      save_private_key: true
+
+  ssh_and_icmp:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: ssh_and_icmp
+      description: Ping and SSH
+      rules:
+      - protocol: icmp
+      - protocol: tcp
+        port_range_min: 22
+        port_range_max: 22
+
+  openlava:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: openlava
+      description: openlava ports
+      rules:
+      - protocol: udp
+        port_range_min: 1024
+        port_range_max: 65535
+      - protocol: tcp
+        port_range_min: 1024
+        port_range_max: 65535
+
+
+  nfs_server_sec:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: nfs_servers
+      description: nfs server
+      rules:
+      - protocol: tcp 
+        port_range_min: 111
+        port_range_max: 111
+      - protocol: tcp
+        port_range_min: 1110
+        port_range_max: 1110
+      - protocol: tcp
+        port_range_min: 2049
+        port_range_max: 2049
+      - protocol: tcp
+        port_range_min: 4045
+        port_range_max: 4045
+      - protocol: udp
+        port_range_min: 111
+        port_range_max: 111
+      - protocol: udp
+        port_range_min: 1110
+        port_range_max: 1110
+      - protocol: udp
+        port_range_min: 2049
+        port_range_max: 2049
+      - protocol: udp
+        port_range_min: 4045
+        port_range_max: 4045
+
+  head:
+    type: OS::Nova::Server
+    properties:
+      image: { get_param: head-image }
+      flavor: { get_param: head-flavor }
+      key_name: { get_param: key }
+      name:
+        str_replace:
+          template: "base%-head"
+          params:
+            base%: { get_param: 'OS::stack_name' } 
+      security_groups:
+        - { get_resource: ssh_and_icmp }
+        - { get_resource: nfs_server_sec }
+        - { get_resource: openlava }
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          params:
+            wc_notify: { get_attr: ['wait_handle', 'curl_cli'] }
+            __root_pub__: { get_attr: [keypair, public_key] }
+            __root_private__: { get_attr: [keypair, private_key] }
+          template: |
+            #!/bin/sh
+            # get the local ip address and put it in /etc/hosts
+            curl -s http://169.254.169.254/latest/meta-data/local-ipv4 | awk '{printf ("%s\t\tcloud-head\n",$1)}' >> /etc/hosts
+            echo cloud-head > /etc/hostname
+            hostname cloud-head
+            # Configure ssh
+            mkdir -R -p  /root/.ssh/
+            echo "__root_pub__" > /root/.ssh/authorized_keys
+            echo "__root_private__" > /root/.ssh/id_dsa
+            chmod -R 700 /root/.ssh /opt/openlava-3.1/work
+            chown -R root /root/.ssh /opt/openlava-3.1/work
+            # Signal that the compute nodes can be started
+            wc_notify --data-binary '{"status": "SUCCESS"}'
+
+  head_floating_IP_att:
+    type: OS::Nova::FloatingIPAssociation
+    properties: 
+      floating_ip: { get_resource: floating_ip }
+      server_id: { get_resource: head }      
+
+  compute_group:
+    type: OS::Heat::ResourceGroup
+    depends_on: head_wait
+    properties:
+      count:  { get_param: compute-node-count }
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          name: compute-%index%
+          image: { get_param: compute-image }
+          flavor: { get_param: compute-flavor }
+          key_name: { get_param: key }
+          security_groups:
+            - { get_resource: ssh_and_icmp }
+            - { get_resource: openlava }
+          user_data_format: RAW
+          user_data:
+            str_replace:
+              params:
+                wc_notify: { get_attr: ['wait_handle', 'curl_cli'] }
+                __root_pub__: { get_attr: [keypair, public_key] }
+                __root_private__: { get_attr: [keypair, private_key] }
+                __head_ip__: { get_attr: [ head, first_address ] }
+              template: |
+                #!/bin/sh
+                NAME=`curl -s http://169.254.169.254/latest/meta-data/hostname`
+                IP_ADDR=` curl -s http://169.254.169.254/latest/meta-data/local-ipv4`
+                # get the local ip address and put it in /etc/hosts
+                #
+                echo "${IP_ADDR}  ${NAME}" >> /etc/hosts
+                echo "__head_ip__  cloud-head" >> /etc/hosts
+                # Configure ssh
+                mkdir -p  /root/.ssh/
+                echo "__root_pub__" > /root/.ssh/authorized_keys
+                echo "__root_private__" > /root/.ssh/id_dsa
+                chmod -R 700 /root/.ssh
+                echo "${NAME} ansible_ssh_host=${IP_ADDR}" > /tmp/ansible
+                scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no /tmp/ansible cloud-head:/root/host-list-$NAME
+                ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no cloud-head "/root/head-run-anisble.sh"
+                ( sleep 20 ; reboot )

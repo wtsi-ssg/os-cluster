@@ -1,0 +1,8 @@
+- name: install head-node
+  sudo: True
+  hosts: all
+  tasks:
+    - file: src=/opt/openlava-3.1/etc/openlava dest=/etc/init.d/openlava state=link force=yes
+    - file: path=/opt/openlava-3.1  state=directory
+    - mount: name=/home src=cloud-head:/home fstype=nfs state=present opts="rw,sync,nfsvers=4"
+    - mount: name=/opt/openlava-3.1 src=cloud-head:/opt/openlava-3.1 fstype=nfs state=present opts="rw,sync,nfsvers=4"
