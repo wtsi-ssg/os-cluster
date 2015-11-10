@@ -203,5 +203,5 @@ resources:
                 chmod -R 700 /root/.ssh
                 echo "${NAME} ansible_ssh_host=${IP_ADDR}" > /tmp/ansible
                 scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no /tmp/ansible cloud-head:/root/host-list-$NAME
-                ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no cloud-head "/root/head-run-anisble.sh"
+                ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no cloud-head "/root/head-run-ansible.sh"
                 ( sleep 20 ; reboot )
