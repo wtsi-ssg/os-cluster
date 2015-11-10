@@ -2,7 +2,6 @@
   sudo: True
   hosts: all
   tasks:
-    - unarchive: src=/tmp/openlava.tar.gz dest=/opt copy=no group=openlava owner=openlava 
     - hostname: name=cloud-head
     - name: install apt packages
       apt: pkg={{ item }}  update_cache=yes cache_valid_time=3600
@@ -13,6 +12,3 @@
     - copy: src=/tmp/head-run-anisble.sh dest=/root/head-run-anisble.sh owner=root group=root mode=0700
     - git: repo=https://github.com/wtsi-ssg/os-cluster-internal-config.git dest=/etc/ansible
     - lineinfile: dest=/etc/exports line="/home *(rw,no_root_squash,no_subtree_check)" create=yes
-    - lineinfile: dest=/etc/exports line="/opt/openlava-3.1 *(rw,no_root_squash,no_subtree_check)"
-    - file: src=/opt/openlava-3.1/etc/openlava dest=/etc/init.d/openlava state=link
-    - service: name=openlava enabled=yes

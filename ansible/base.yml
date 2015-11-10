@@ -316,3 +316,6 @@
         - zlib1g-dev
     - group: name=openlava state=present
     - user: name=openlava shell=/bin/bash group=openlava system=yes  createhome=no state=present
+    - unarchive: src=/tmp/openlava.tar.gz dest=/opt copy=no group=openlava owner=openlava
+    - file: src=/opt/openlava-3.1/etc/openlava dest=/etc/init.d/openlava state=link force=yes
+    - command: update-rc.d openlava defaults

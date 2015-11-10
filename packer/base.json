@@ -15,7 +15,12 @@
         }
     ],
     "provisioners": [
-              {
+        {
+          "type": "file",
+           "source": "data/openlava.tar.gz",
+           "destination": "/tmp/openlava.tar.gz"
+        },
+        {
             "scripts": [
               "scripts/install_ansible.sh"
             ],
