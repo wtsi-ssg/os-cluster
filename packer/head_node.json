@@ -17,8 +17,8 @@
     "provisioners": [
         {   
            "type": "file",
-           "source": "data/head-run-anisble.sh",
-           "destination": "/tmp/head-run-anisble.sh"
+           "source": "data/head-run-ansible.sh",
+           "destination": "/tmp/head-run-ansible.sh"
         },
         {
              "type": "ansible-local",
