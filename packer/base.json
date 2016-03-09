@@ -16,13 +16,9 @@
     ],
     "provisioners": [
         {
-          "type": "file",
-           "source": "data/openlava.tar.gz",
-           "destination": "/tmp/openlava.tar.gz"
-        },
-        {
             "scripts": [
-              "scripts/install_ansible.sh"
+              "scripts/install_ansible.sh" , 
+              "scripts/download_openlava.sh"
             ],
             "type": "shell",
             "execute_command": "sudo bash '{{.Path}}'"

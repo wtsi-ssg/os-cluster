@@ -15,12 +15,12 @@ parameters:
     type: string
     label: Image name or ID
     description: Image to be used for compute instance
-    default: 3137b712-1e3a-428c-a8e3-58fb88ff9551
+    default: 354a2c2b-3395-4fac-8c74-a9dea0500f4b
   compute-image:
     type: string
     label: Image name or ID
     description: Image to be used for compute instance
-    default: 33cfba53-1b3a-483b-b076-3e0019a124cf
+    default: 3c8eaf84-cc3c-44af-8fe9-45b0e7effea8
   head-flavor:
     type: string
     label: Flavor
