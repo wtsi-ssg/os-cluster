@@ -5,9 +5,6 @@
     - name: install apt packages
       apt: pkg={{ item }}  update_cache=yes cache_valid_time=3600
       with_items:
-        - a2ps
-        - acct
-        - acl
         - acpi
         - ant
         - apt-file
@@ -35,8 +32,6 @@
         - cvs
         - cvs-buildpackage
         - daemon
-        - db4.8-util
-        - dbs
         - dc
         - ddd
         - ddd-doc
@@ -54,13 +49,11 @@
         - flex
         - freeglut3
         - freeglut3-dev
-        - g++-4.6
         - gawk
         - gawk-doc
         - gbase
         - gcc-4.6
         - gcc-doc
-        - gcj-4.6-base
         - gdb-doc
         - geany
         - geany-plugin-addons
@@ -71,7 +64,6 @@
         - git-gui
         - git-svn
         - glibc-doc
-        - glpk
         - gnupg-agent
         - gnuplot
         - gnuplot-doc
@@ -92,15 +84,12 @@
         - ksh
         - kstart
         - latexdiff
-        - lesstif2-dev
         - lftp
         - libaio-dev
         - libargtable2-0
         - libatlas3gf-base
         - libatlas-base-dev
         - libatlas-dev
-        - libboost1.48-all-dev
-        - libboost1.48-dev
         - libbz2-dev
         - libc6-dev-i386
         - libc6-i386
@@ -121,14 +110,9 @@
         - libfftw3-dev
         - libfuse-dev
         - libg20
-        - libgcj12
         - libgcj-common
-        - libgd2-xpm
         - libgd2-xpm-dev
         - libgdbm-dev
-        - libglew1.5
-        - libgmp3c2
-        - libgnomeprint2.2-0
         - libgraphviz-dev
         - libgsl0-dev
         - libgsl0ldbl
@@ -137,7 +121,6 @@
         - libgtk2.0-cil
         - libgtk2.0-common
         - libgtk2.0-dev
-        - libhdf5-serial-1.8.4
         - libhdf5-serial-dev
         - libjpeg62
         - libjson-xs-perl
@@ -156,8 +139,6 @@
         - libnet-daemon-perl
         - libnl1
         - libnss-db
-        - libopenmpi1.3
-        - libopenmpi-dbg
         - libopenmpi-dev
         - libpam0g-dev
         - libparse-recdescent-perl
@@ -179,7 +160,6 @@
         - libtool
         - libtool-doc
         - libtre5
-        - libvibrant6a
         - libxdot4
         - libxml2-dev
         - libxml-dom-perl
@@ -211,10 +191,8 @@
         - nfs-common
         - nss-updatedb
         - numactl
-        - octave3.2
         - octave-epstk
         - octave-pkg-dev
-        - octave-plplot
         - openmpi-bin
         - openmpi-common
         - optipng
@@ -231,8 +209,6 @@
         - pmount
         - pngcrush
         - portreserve
-        - postgresql-client-8.4
-        - postgresql-client-9.1
         - primer3
         - pv
         - pwgen
@@ -254,7 +230,6 @@
         - reiserfsprogs
         - reportbug
         - ruby
-        - ruby1.8-dev
         - ruby-mysql
         - sasl2-bin
         - screen
@@ -312,10 +287,6 @@
         - xvfb
         - yasm
         - zip
-        - zlib1g
-        - zlib1g-dev
     - group: name=openlava state=present
     - user: name=openlava shell=/bin/bash group=openlava system=yes  createhome=no state=present
     - unarchive: src=/tmp/openlava.tar.gz dest=/opt copy=no group=openlava owner=openlava
-    - file: src=/opt/openlava-3.1/etc/openlava dest=/etc/init.d/openlava state=link force=yes
-    - command: update-rc.d openlava defaults
