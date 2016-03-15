@@ -7,8 +7,4 @@
       apt: pkg={{ item }}  update_cache=yes cache_valid_time=3600
       with_items:
         - nfs-kernel-server
-    - file: path=/etc/ansible state=absent
-    - file: path=/etc/ansible state=directory owner=root group=root mode=0700
-    - copy: src=/tmp/head-run-anisble.sh dest=/root/head-run-anisble.sh owner=root group=root mode=0700
-    - git: repo=https://github.com/wtsi-ssg/os-cluster-internal-config.git dest=/etc/ansible
     - lineinfile: dest=/etc/exports line="/home *(rw,no_root_squash,no_subtree_check)" create=yes
