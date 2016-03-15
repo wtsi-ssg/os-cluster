@@ -1,9 +1,12 @@
 #!/bin/bash
 export DATE="`date --rfc-3339=seconds`"
-export REL="precise"
+export REL="trusty"
 case "$REL" in
   precise)
     export SIMPLE_IMAGE="82b55c8c-cce1-4301-92c4-b005180531de"
+    ;;
+  trusty)
+    export SIMPLE_IMAGE="20811a86-6dbb-4ef7-9047-75a4a6727773"
     ;;
 esac
 LOG=/tmp/pack_log.$$
@@ -40,7 +43,6 @@ if [ -z "$BASE_IMAGE" ] ; then
  export BASE_IMAGE=`grep " id " $LOG2 | awk '{print $4}'`
  rm $LOG
 fi
-
 if [ -z "$HEAD_IMAGEID" ] ; then
  packer build -only openstack packer/head_node.json | tee $LOG
  export HEAD_IMAGEID=`tail -1  $LOG | sed -e 's/.*An image was created: //'`
