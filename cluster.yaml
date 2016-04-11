@@ -1,4 +1,22 @@
 heat_template_version: 2015-04-30
+#License
+#=======
+#  Copyright (c) 2015 Genome Research Ltd. 
+#
+#  Author: James Beal <James.Beal@sanger.ac.uk>
+#
+#  This file is part of https://github.com/wtsi-ssg/os-cluster-internal-config
+#
+#  This  is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation; either version 3 of the License, or
+#  (at your option) any later version.   This program is distributed
+#  in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+#  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+#  PARTICULAR PURPOSE. See the GNU General Public License for more details. 
+#  You should have received a copy of the GNU General Public License along
+#  with this program. If not, see <http://www.gnu.org/licenses/>. 
+#
 # http://www.yamllint.com/
 # http://docs.openstack.org/developer/heat/template_guide/hot_guide.html
 # https://gitlab.cern.ch/admluis/clouddocs/blob/56d3af4fde261bf42125038d4c6c835e576011e0/orchestration/advanced_concepts.md
@@ -203,5 +221,5 @@ resources:
                 chmod -R 700 /root/.ssh
                 echo "${NAME} ansible_ssh_host=${IP_ADDR}" > /tmp/ansible
                 scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no /tmp/ansible cloud-head:/root/host-list-$NAME
-                ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no cloud-head "/root/head-run-anisble.sh"
+                ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no cloud-head "/root/head-run-ansible.sh"
                 ( sleep 20 ; reboot )
