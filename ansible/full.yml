@@ -287,6 +287,9 @@
         - xvfb
         - yasm
         - zip
+        - nfs-kernel-server
     - group: name=openlava state=present
     - user: name=openlava shell=/bin/bash group=openlava system=yes  createhome=no state=present
     - unarchive: src=/root/openlava.tar.gz dest=/opt copy=no group=openlava owner=openlava
+    - lineinfile: dest=/etc/exports line="/home *(rw,no_root_squash,no_subtree_check)" create=yes
+    - lineinfile: dest=/etc/exports line="/opt *(rw,no_root_squash,no_subtree_check)" create=yes

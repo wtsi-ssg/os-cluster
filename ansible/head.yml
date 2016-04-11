@@ -8,6 +8,3 @@
       with_items:
         - nfs-kernel-server
     - lineinfile: dest=/etc/exports line="/home *(rw,no_root_squash,no_subtree_check)" create=yes
-    - lineinfile: dest=/etc/exports line="/home *(rw,no_root_squash,no_subtree_check)" create=yes
-    - unarchive: src=/tmp/openlava.tar.gz dest=/opt copy=no group=openlava owner=openlava
-

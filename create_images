@@ -38,6 +38,7 @@ if [ -z "$BASE_IMAGE" ] ; then
   echo Error uploading image
   exit 4
  fi
+ exit 0 
  rm -f ${PACKER_QCOW} ${PACKER_RAW}
  glance image-delete ${IMAGEID}
  export BASE_IMAGE=`grep " id " $LOG2 | awk '{print $4}'`
@@ -70,6 +71,7 @@ if [ -z "$HEAD_IMAGEID" ] ; then
  glance image-delete ${HEAD_IMAGEID}
  rm $LOG
 fi
+exit 0
 
 packer build -only openstack packer/compute_node.json | tee $LOG
 export COMPUTE_IMAGEID=`tail -1  $LOG | sed -e 's/.*An image was created: //'`

@@ -1,10 +1,11 @@
 {
+    "min_packer_version": "0.8.6",
     "variables": {
             "image_id": "{{env `SIMPLE_IMAGE`}}"
                   },
     "builders": [
         {
-            "flavor": "m1.small",
+            "flavor": "m1.medium",
             "image_name": "cluster in a box",
             "source_image": "{{user `image_id`}}",
             "ssh_username": "ubuntu",
@@ -18,14 +19,15 @@
         {
             "scripts": [
               "scripts/install_ansible.sh" , 
-              "scripts/download_openlava.sh"
+              "scripts/download_openlava.sh",
+              "scripts/install_cloud-init.sh"
             ],
             "type": "shell",
             "execute_command": "sudo bash '{{.Path}}'"
         },
         {
              "type": "ansible-local",
-             "playbook_file": "ansible/base.yml"
+             "playbook_file": "ansible/full.yml"
         }
     ]
 }
